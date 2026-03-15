@@ -1,0 +1,36 @@
+# ==========================================
+# Pliki ignorowane w projektach AMD/Xilinx Vivado
+# ==========================================
+
+# Pliki logów i dzienników (Vivado generuje je przy każdym uruchomieniu)
+*.jou
+*.log
+*.str
+*.dmp
+webtalk_pn.xml
+
+# Foldery z wynikami syntezy, implementacji i bitstreamami
+# (To wszystko można wygenerować ponownie z kodu)
+*.runs/
+*.hw/
+
+# Foldery symulacji (skompilowane pliki testowe)
+*.sim/
+
+# Pamięć podręczna i pliki tymczasowe
+*.cache/
+.Xil/
+
+# Pliki pomocnicze dla IP Core'ów (Vivado wygeneruje je samo z plików .xci)
+*.ip_user_files/
+
+# Opcjonalnie: Ignoruj wygenerowane archiwa projektu (jeśli robisz File -> Archive)
+*.zip
+
+# ==========================================
+# Systemowe pliki śmieciowe (Windows / Linux / Mac)
+# ==========================================
+Thumbs.db
+desktop.ini
+.DS_Store
+*~
