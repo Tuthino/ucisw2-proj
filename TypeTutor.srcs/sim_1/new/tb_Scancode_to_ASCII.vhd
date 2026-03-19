@@ -135,7 +135,6 @@ begin
         tb_Key_Rdy  <= '0';
         wait for 50 ns;
 
-        -- Zatrzymanie symulacji w nieskończoność (inaczej zaczęłaby się od nowa)
         wait;
     end process;
 
