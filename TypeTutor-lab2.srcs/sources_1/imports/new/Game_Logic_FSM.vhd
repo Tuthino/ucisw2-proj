@@ -45,7 +45,8 @@ architecture Behavioral of Game_Logic_FSM is
         WAIT_TO_START, INIT, CLEAR_SCREEN, CLEAR_SCREEN_ACK, WAIT_CLEAR, DRAW_TARGET_WORD, DRAW_TARGET_WORD_ACK,
         WAIT_OLED_DRAW, WAIT_FOR_KEY, ECHO_TYPED_CHAR,
         WAIT_OLED_ECHO, CHECK_WIN,
-        PREPARE_RESULT, DRAW_RESULT, DRAW_RESULT_ACK, WAIT_RESULT_DRAW
+        PREPARE_RESULT, DRAW_RESULT, DRAW_RESULT_ACK, WAIT_RESULT_DRAW,
+        FORCE_NEW_LINE, NL_ACK, NL_WAIT
     );
     signal state : state_type := WAIT_TO_START;
 
@@ -126,6 +127,10 @@ architecture Behavioral of Game_Logic_FSM is
     signal result_str : res_array;
     signal res_idx    : integer range 0 to 12 := 0;
     
+    -- Licznik wszystkich znaków wysłanych od ostatniego czyszczenia ekranu
+    signal total_chars : integer range 0 to 167 := 0; 
+    -- Stan powrotu - by wiedzieć, gdzie pójść po zakończeniu nowej linii
+    signal state_after_nl : state_type;
     
     
 
@@ -204,6 +209,7 @@ begin
                 --  Czyszczenie ekranu OLED
                 when CLEAR_SCREEN =>
                     OLED_ClrScr <= '1';
+
                     state <= CLEAR_SCREEN_ACK;
                     
                 when CLEAR_SCREEN_ACK =>
@@ -215,6 +221,7 @@ begin
                 when WAIT_CLEAR =>
                     if OLED_Busy = '0' then
                         state <= DRAW_TARGET_WORD;
+                        total_chars <= 0; -- po każdym clear_screen musimy zresetować licznik 
                     end if;
 
                 --  Wypisanie docelowego słowa na ekran
@@ -228,7 +235,9 @@ begin
                         -- Słowo wypisane! Zerujemy indeks i czekamy na klawisze
                         letter_idx <= 0;
                         timer_running <= '1';
-                        state <= WAIT_FOR_KEY;
+                        -- Muismy wyrównać do nowej lini zanim użytkownik będzie pisał
+                        state_after_nl <= WAIT_FOR_KEY; -- Gdzie iść po nowej linii
+                        state <= FORCE_NEW_LINE;        -- Wywołaj wyrównanie
                     end if;
                     
                 when DRAW_TARGET_WORD_ACK =>
@@ -240,6 +249,7 @@ begin
                 when WAIT_OLED_DRAW =>
                     if OLED_Busy = '0' then
                         letter_idx <= letter_idx + 1;
+                        total_chars <= total_chars + 1;
                         state <= DRAW_TARGET_WORD; -- Wróć wypisywac kolejną
                     end if;
 
@@ -285,7 +295,8 @@ begin
                     else
                         -- Następny znak to NULL, czyli mamy całe słowo
                         timer_running <= '0';
-                        state <= PREPARE_RESULT; 
+                        state_after_nl <= PREPARE_RESULT; -- Po nowej linii przygotuj wynik
+                        state <= FORCE_NEW_LINE;
                     end if;
                     --  Przygotowanie napisu z wynikiem: " E:00 T:00.0"
                 when PREPARE_RESULT =>
@@ -328,6 +339,35 @@ begin
                         res_idx <= res_idx + 1;
                         state <= DRAW_RESULT;
                     end if;
+
+
+                ---------------------------------------------------------
+                -- MECHANIZM WYMUSZANIA NOWEJ LINII -- wywolywany z kilku stanow 
+                -- i ma dynamicznie definiowany stan powrotu
+                ---------------------------------------------------------
+                when FORCE_NEW_LINE =>
+                    -- Sprawdzamy czy jesteśmy na początku linii (pozycja 0, 21, 42...)
+                    if (total_chars mod 21) /= 0 then
+                        OLED_ASCII <= "0100000"; -- Wyślij spację (ASCII 0x20)
+                        OLED_WE <= '1';
+                        state <= NL_ACK;
+                    else
+                        -- Jesteśmy na początku nowej linii, wracamy do logiki gry
+                        state <= state_after_nl;
+                    end if;
+                
+                when NL_ACK =>
+                    if OLED_Busy = '1' then
+                        state <= NL_WAIT;
+                    end if;
+                
+                when NL_WAIT =>
+                    if OLED_Busy = '0' then
+                        total_chars <= total_chars + 1;
+                        state <= FORCE_NEW_LINE; -- Sprawdź czy trzeba wysłać kolejną spację
+                    end if;
+
+
 
                 when others =>
                     state <= WAIT_TO_START;
