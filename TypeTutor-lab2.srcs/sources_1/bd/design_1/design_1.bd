@@ -1,0 +1,299 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0xA958C8F0383C2664",
+      "device": "xczu3eg-sfvc784-2-e",
+      "gen_directory": "../../../../TypeTutor-lab2.gen/sources_1/bd/design_1",
+      "name": "design_1",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2025.1",
+      "validated": "true"
+    },
+    "design_tree": {
+      "PS2_Kbd_0": "",
+      "OLED_ASCII_0": "",
+      "Game_Logic_FSM_0": "",
+      "clk_wiz_0": "",
+      "Scancode_to_ASCII_0": ""
+    },
+    "interface_ports": {
+      "clk_100mhz": {
+        "mode": "Slave",
+        "vlnv_bus_definition": "xilinx.com:interface:diff_clock:1.0",
+        "vlnv": "xilinx.com:interface:diff_clock_rtl:1.0",
+        "parameters": {
+          "CAN_DEBUG": {
+            "value": "false",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "100000000"
+          }
+        },
+        "port_maps": {
+          "CLK_N": {
+            "physical_name": "clk_100mhz_clk_n",
+            "direction": "I"
+          },
+          "CLK_P": {
+            "physical_name": "clk_100mhz_clk_p",
+            "direction": "I"
+          }
+        }
+      }
+    },
+    "ports": {
+      "PS2_Clk": {
+        "direction": "I"
+      },
+      "PS2_Data": {
+        "direction": "I"
+      },
+      "OLED_SDA": {
+        "direction": "IO"
+      },
+      "OLED_SCL": {
+        "direction": "IO"
+      }
+    },
+    "components": {
+      "PS2_Kbd_0": {
+        "vlnv": "JS_WUST:UCiSW:PS2_Kbd:1.0",
+        "ip_revision": "1",
+        "xci_name": "design_1_PS2_Kbd_0_0",
+        "xci_path": "ip\\design_1_PS2_Kbd_0_0\\design_1_PS2_Kbd_0_0.xci",
+        "inst_hier_path": "PS2_Kbd_0",
+        "has_run_ip_tcl": "true"
+      },
+      "OLED_ASCII_0": {
+        "vlnv": "JS_WUST:UCiSW:OLED_ASCII:1.0",
+        "ip_revision": "1",
+        "xci_name": "design_1_OLED_ASCII_0_0",
+        "xci_path": "ip\\design_1_OLED_ASCII_0_0\\design_1_OLED_ASCII_0_0.xci",
+        "inst_hier_path": "OLED_ASCII_0",
+        "has_run_ip_tcl": "true"
+      },
+      "Game_Logic_FSM_0": {
+        "vlnv": "xilinx.com:module_ref:Game_Logic_FSM:1.0",
+        "ip_revision": "1",
+        "xci_name": "design_1_Game_Logic_FSM_0_0",
+        "xci_path": "ip\\design_1_Game_Logic_FSM_0_0\\design_1_Game_Logic_FSM_0_0.xci",
+        "inst_hier_path": "Game_Logic_FSM_0",
+        "has_run_ip_tcl": "true",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Game_Logic_FSM",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "Clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "FREQ_HZ": {
+                "value": "100000000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "design_1_clk_wiz_0_0_clk_out1",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "ASCII_In": {
+            "direction": "I",
+            "left": "6",
+            "right": "0"
+          },
+          "Char_Valid": {
+            "direction": "I"
+          },
+          "OLED_ASCII": {
+            "direction": "O",
+            "left": "6",
+            "right": "0"
+          },
+          "OLED_WE": {
+            "direction": "O"
+          },
+          "OLED_ClrScr": {
+            "direction": "O"
+          },
+          "OLED_Busy": {
+            "direction": "I"
+          }
+        }
+      },
+      "clk_wiz_0": {
+        "vlnv": "xilinx.com:ip:clk_wiz:6.0",
+        "ip_revision": "16",
+        "xci_name": "design_1_clk_wiz_0_0",
+        "xci_path": "ip\\design_1_clk_wiz_0_0\\design_1_clk_wiz_0_0.xci",
+        "inst_hier_path": "clk_wiz_0",
+        "has_run_ip_tcl": "true",
+        "parameters": {
+          "CLK_IN1_BOARD_INTERFACE": {
+            "value": "clk_100mhz"
+          },
+          "USE_BOARD_FLOW": {
+            "value": "true"
+          }
+        }
+      },
+      "Scancode_to_ASCII_0": {
+        "vlnv": "xilinx.com:module_ref:Scancode_to_ASCII:1.0",
+        "ip_revision": "1",
+        "xci_name": "design_1_Scancode_to_ASCII_0_0",
+        "xci_path": "ip\\design_1_Scancode_to_ASCII_0_0\\design_1_Scancode_to_ASCII_0_0.xci",
+        "inst_hier_path": "Scancode_to_ASCII_0",
+        "has_run_ip_tcl": "true",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "Scancode_to_ASCII",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "Clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "FREQ_HZ": {
+                "value": "100000000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "design_1_clk_wiz_0_0_clk_out1",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "Key_Code": {
+            "direction": "I",
+            "left": "7",
+            "right": "0"
+          },
+          "Key_Rdy": {
+            "direction": "I"
+          },
+          "F0": {
+            "direction": "I"
+          },
+          "ASCII_Out": {
+            "direction": "O",
+            "left": "6",
+            "right": "0"
+          },
+          "Char_Valid": {
+            "direction": "O"
+          }
+        }
+      }
+    },
+    "interface_nets": {
+      "clk_100mhz_1": {
+        "interface_ports": [
+          "clk_100mhz",
+          "clk_wiz_0/CLK_IN1_D"
+        ]
+      }
+    },
+    "nets": {
+      "Game_Logic_FSM_0_OLED_ASCII": {
+        "ports": [
+          "Game_Logic_FSM_0/OLED_ASCII",
+          "OLED_ASCII_0/ASCII"
+        ]
+      },
+      "Game_Logic_FSM_0_OLED_ClrScr": {
+        "ports": [
+          "Game_Logic_FSM_0/OLED_ClrScr",
+          "OLED_ASCII_0/ClrScr"
+        ]
+      },
+      "Game_Logic_FSM_0_OLED_WE": {
+        "ports": [
+          "Game_Logic_FSM_0/OLED_WE",
+          "OLED_ASCII_0/ASCII_WE"
+        ]
+      },
+      "Net": {
+        "ports": [
+          "OLED_SDA",
+          "OLED_ASCII_0/OLED_SDA"
+        ]
+      },
+      "Net1": {
+        "ports": [
+          "OLED_SCL",
+          "OLED_ASCII_0/OLED_SCL"
+        ]
+      },
+      "OLED_ASCII_0_Busy": {
+        "ports": [
+          "OLED_ASCII_0/Busy",
+          "Game_Logic_FSM_0/OLED_Busy"
+        ]
+      },
+      "PS2_Clk_1": {
+        "ports": [
+          "PS2_Clk",
+          "PS2_Kbd_0/PS2_Clk"
+        ]
+      },
+      "PS2_Data_1": {
+        "ports": [
+          "PS2_Data",
+          "PS2_Kbd_0/PS2_Data"
+        ]
+      },
+      "PS2_Kbd_0_F0": {
+        "ports": [
+          "PS2_Kbd_0/F0",
+          "Scancode_to_ASCII_0/F0"
+        ]
+      },
+      "PS2_Kbd_0_Key_Code": {
+        "ports": [
+          "PS2_Kbd_0/Key_Code",
+          "Scancode_to_ASCII_0/Key_Code"
+        ]
+      },
+      "PS2_Kbd_0_Key_Rdy": {
+        "ports": [
+          "PS2_Kbd_0/Key_Rdy",
+          "Scancode_to_ASCII_0/Key_Rdy"
+        ]
+      },
+      "Scancode_to_ASCII_0_ASCII_Out": {
+        "ports": [
+          "Scancode_to_ASCII_0/ASCII_Out",
+          "Game_Logic_FSM_0/ASCII_In"
+        ]
+      },
+      "Scancode_to_ASCII_0_Char_Valid": {
+        "ports": [
+          "Scancode_to_ASCII_0/Char_Valid",
+          "Game_Logic_FSM_0/Char_Valid"
+        ]
+      },
+      "clk_wiz_0_clk_out1": {
+        "ports": [
+          "clk_wiz_0/clk_out1",
+          "PS2_Kbd_0/Clk_100MHz",
+          "OLED_ASCII_0/Clk_100MHz",
+          "Scancode_to_ASCII_0/Clk",
+          "Game_Logic_FSM_0/Clk"
+        ]
+      }
+    }
+  }
+}
