@@ -133,6 +133,11 @@ architecture Behavioral of Game_Logic_FSM is
     signal state_after_nl : state_type;
     
     
+    -- Liczniki wpisanych słów, żeby nie kończyc gry od razu po pierwszym słowie
+    constant WORDS_TO_WIN : integer := 3;
+    signal words_typed    : integer range 0 to 15 := 0; -- Licznik wpisanych słów
+    
+    
 
 begin
 
@@ -205,6 +210,7 @@ begin
                     time_ds <= 0; time_s <= 0; time_10s <= 0; -- Reset czasu
                     timer_running <= '0';    -- <--- UPEWNIENIE, ŻE STOPER STOI
                     state <= CLEAR_SCREEN;
+                    words_typed <= 0;
 
                 --  Czyszczenie ekranu OLED
                 when CLEAR_SCREEN =>
@@ -294,16 +300,28 @@ begin
                         state <= WAIT_FOR_KEY; 
                     else
                         -- Następny znak to NULL, czyli mamy całe słowo
-                        timer_running <= '0';
-                        state_after_nl <= PREPARE_RESULT; -- Po nowej linii przygotuj wynik
-                        state <= FORCE_NEW_LINE;
+                        
+                        if words_typed + 1 = WORDS_TO_WIN then
+                            timer_running <= '0';
+                            state_after_nl <= PREPARE_RESULT; -- Po nowej linii przygotuj wynik
+                            state <= FORCE_NEW_LINE;
+                        else
+                        
+                        -- Gramy dalej (Gracz musi wpisać kolejne słowo)
+                            words_typed <= words_typed + 1;         
+                            current_word <= DICTIONARY(random_cnt); 
+                            letter_idx <= 0;                        
+                            
+                            -- To wyczyści OLED, wypisze nowe słowo i znowu poczeka na klawisze.
+                            state <= CLEAR_SCREEN; 
+                        end if;
                     end if;
                     --  Przygotowanie napisu z wynikiem: " E:00 T:00.0"
                 when PREPARE_RESULT =>
                     result_str(0) <= "0100000"; -- Spacja
                     result_str(1) <= "1000101"; -- 'E' (Errors)
                     result_str(2) <= "0111010"; -- ':'
-                    -- Dodajemy 48 (0x30) do cyfry, by otrzymać kod ASCII!
+                    -- Dodajemy 48 (0x30) do cyfry, by otrzymać kod ASCII
                     result_str(3) <= std_logic_vector(to_unsigned(err_tens + 48, 7));
                     result_str(4) <= std_logic_vector(to_unsigned(err_ones + 48, 7));
                     
@@ -348,7 +366,7 @@ begin
                 when FORCE_NEW_LINE =>
                     -- Sprawdzamy czy jesteśmy na początku linii (pozycja 0, 21, 42...)
                     if (total_chars mod 21) /= 0 then
-                        OLED_ASCII <= "0100000"; -- Wyślij spację (ASCII 0x20)
+                        OLED_ASCII <= "0100000"; -- spacja (ASCII 0x20)
                         OLED_WE <= '1';
                         state <= NL_ACK;
                     else
@@ -364,7 +382,7 @@ begin
                 when NL_WAIT =>
                     if OLED_Busy = '0' then
                         total_chars <= total_chars + 1;
-                        state <= FORCE_NEW_LINE; -- Sprawdź czy trzeba wysłać kolejną spację
+                        state <= FORCE_NEW_LINE; -- Sprawdzamy czy trzeba wysłać więcej spacji
                     end if;
 
 
