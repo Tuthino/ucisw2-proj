@@ -1,34 +1,26 @@
 ----------------------------------------------------------------------------------
 -- Company: 
--- Engineer: 
+-- Engineer: UCISW Master
 -- 
--- Create Date: 03/15/2026 06:10:46 PM
--- Design Name: 
--- Module Name: tb_Game_Logic_FSM - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
+-- Create Date: 05/29/2026
+-- Design Name: tb_Game_Logic_FSM
+-- Target Devices: AUP-ZU3 (Zynq UltraScale+)
+-- Tool Versions: Vivado
+-- Description: Uniwersalny Testbench do weryfikacji logiki gry.
 ----------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity tb_Game_Logic_FSM is
--- Puste entity dla testbencha
+-- Testbench nie ma portów
 end tb_Game_Logic_FSM;
 
 architecture Behavioral of tb_Game_Logic_FSM is
 
-    -- 1. Deklaracja naszego FSM (DUT)
-    component Game_Logic_FSM
+    -- Komponent DUT (Device Under Test)
+    component Game_Logic_FSM is
         Port ( 
             Clk         : in  STD_LOGIC;
             ASCII_In    : in  STD_LOGIC_VECTOR (6 downto 0);
@@ -40,124 +32,108 @@ architecture Behavioral of tb_Game_Logic_FSM is
         );
     end component;
 
-    -- 2. Sygnały testowe
-    signal tb_Clk         : STD_LOGIC := '0';
-    signal tb_ASCII_In    : STD_LOGIC_VECTOR (6 downto 0) := (others => '0');
-    signal tb_Char_Valid  : STD_LOGIC := '0';
-    signal tb_OLED_ASCII  : STD_LOGIC_VECTOR (6 downto 0);
-    signal tb_OLED_WE     : STD_LOGIC;
-    signal tb_OLED_ClrScr : STD_LOGIC;
-    signal tb_OLED_Busy   : STD_LOGIC := '0';
+    -- Sygnały testowe
+    signal Clk         : STD_LOGIC := '0';
+    signal ASCII_In    : STD_LOGIC_VECTOR (6 downto 0) := (others => '0');
+    signal Char_Valid  : STD_LOGIC := '0';
+    
+    signal OLED_ASCII  : STD_LOGIC_VECTOR (6 downto 0);
+    signal OLED_WE     : STD_LOGIC;
+    signal OLED_ClrScr : STD_LOGIC;
+    signal OLED_Busy   : STD_LOGIC := '0';
 
-    constant clk_period : time := 10 ns;
+    -- Parametry zegara (100 MHz -> 10 ns)
+    constant CLK_PERIOD : time := 10 ns;
+
+    -- Tablica symulująca opóźnienie dla OLEDa (w cyklach zegara)
+    signal oled_delay_cnt : integer := 0;
+
+    -- =========================================================================
+    -- UNIWERSALNA TABLICA ZNAKÓW (SCENARIUSZ TESTOWY)
+    -- =========================================================================
+    -- Tutaj definiujesz, co po kolei naciska użytkownik.
+    -- character'val(27) to klawisz ESC
+    type char_array_type is array (natural range <>) of character;
+    constant TEST_SEQUENCE : char_array_type := (
+        ' ', -- 1. Naciśnięcie spacji na ekranie WAIT_TO_START
+        's', 'y', 's', 't', 'e', ' ', ' ', 'm', ' ', ' ', ' ', 'r', 'a', 'w', 'i', 'a', ' ', -- Słowo 1
+        'F', 'P', 'G', 'A', ' ', 'x', 'h', 'e', 'h', 'e', -- Słowo 2 (celowy błąd: 'x')
+        'u', 'c', 'i', 's', 'w', -- Słowo 3
+        ' ', -- Kontynuacja gry po wygranej (Ekran Decyzji)
+        character'val(27) -- Wyjście do menu z ekranu decyzji
+    );
 
 begin
 
-    -- 3. Podłączenie DUT
+    -- Instancja testowanego modułu
     DUT: Game_Logic_FSM port map (
-        Clk         => tb_Clk,
-        ASCII_In    => tb_ASCII_In,
-        Char_Valid  => tb_Char_Valid,
-        OLED_ASCII  => tb_OLED_ASCII,
-        OLED_WE     => tb_OLED_WE,
-        OLED_ClrScr => tb_OLED_ClrScr,
-        OLED_Busy   => tb_OLED_Busy
+        Clk         => Clk,
+        ASCII_In    => ASCII_In,
+        Char_Valid  => Char_Valid,
+        OLED_ASCII  => OLED_ASCII,
+        OLED_WE     => OLED_WE,
+        OLED_ClrScr => OLED_ClrScr,
+        OLED_Busy   => OLED_Busy
     );
 
-    -- 4. Generator zegara (100 MHz)
-    clk_process :process
+    -- =========================================================================
+    -- GENERATOR ZEGARA
+    -- =========================================================================
+    Clk_Process: process
     begin
-        tb_Clk <= '0';
-        wait for clk_period/2;
-        tb_Clk <= '1';
-        wait for clk_period/2;
+        Clk <= '0';
+        wait for CLK_PERIOD / 2;
+        Clk <= '1';
+        wait for CLK_PERIOD / 2;
     end process;
 
-    -- 5. Symulacja (Mock) Ekranu OLED
-    oled_mock_process :process
+    -- =========================================================================
+    -- SYMULATOR WYŚWIETLACZA OLED (Mock)
+    -- =========================================================================
+    OLED_Mock_Process: process(Clk)
     begin
-        wait until rising_edge(tb_Clk);
-        if tb_OLED_ClrScr = '1' or tb_OLED_WE = '1' then
-            tb_OLED_Busy <= '1';     
-            wait for 50 ns;          
-            wait until rising_edge(tb_Clk);
-            tb_OLED_Busy <= '0';     
+        if rising_edge(Clk) then
+            if OLED_WE = '1' or OLED_ClrScr = '1' then
+                -- Jeśli FSM wyśle komendę, zajmij ekran na 5 cykli
+                oled_delay_cnt <= 5;
+                OLED_Busy <= '1';
+            elsif oled_delay_cnt > 0 then
+                oled_delay_cnt <= oled_delay_cnt - 1;
+                OLED_Busy <= '1';
+            else
+                OLED_Busy <= '0';
+            end if;
         end if;
     end process;
 
-    -- Główny scenariusz gry (Gracz wpisuje litery słowa "vivado")
-    stim_proc: process
+    -- =========================================================================
+    -- PROCES WSTRZYKUJĄCY KLAWISZE (Stimulus)
+    -- =========================================================================
+    Stimulus_Process: process
     begin
-    
-        -- Po włączeniu zasilania czekamy losową ilość czasu 
-        -- (To symuluje czas, zanim gracz zdecyduje się rozpocząć)
-        wait for 120 ns; -- Zmieniając tę wartość (np. na 750 ns, 120 ns), zmieniamy wylosowane PIERWSZE słowo
+        -- Poczekaj chwilę po uruchomieniu symulacji
+        wait for 100 ns;
 
-        -- ========================================================
-        -- GRACZ WCISKA KLAWISZ, ABY ZACZĄĆ GRĘ
-        -- ========================================================
-        tb_ASCII_In   <= "1100001"; -- a
-        tb_Char_Valid <= '1'; 
-        wait for clk_period; 
-        tb_Char_Valid <= '0';
+        -- Przejście przez wszystkie zdefiniowane znaki
+        for i in TEST_SEQUENCE'range loop
+            
+            -- Czekamy na odpowiedni stan maszyny (OLED musi być wolny, a system gotowy)
+            -- Symulujemy opóźnienie "myślenia" użytkownika (np. 3 mikrosekundy)
+            wait for 3 us; 
 
-        -- Czekamy aż FSM wyczyści ekran i wypisze docelowe słowo
-        wait for 500 ns;
+            -- Ustaw znak na wejściu i odpal Valid na 1 cykl zegara
+            ASCII_In <= std_logic_vector(to_unsigned(character'pos(TEST_SEQUENCE(i)), 7));
+            Char_Valid <= '1';
+            wait for CLK_PERIOD;
+            Char_Valid <= '0';
+            
+            -- Opcjonalnie: logowanie do konsoli symulacji (TCL)
+            report "Wyslano znak: " & character'image(TEST_SEQUENCE(i));
+            
+        end loop;
 
-
-        -- Użytkownik wpisuje ZŁĄ literę (np. 'x')
-        tb_ASCII_In   <= "1111000"; -- 'x' (0x78)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        wait for 200 ns; -- Oczekiwany wynik: error_count rośnie, stan zostaje WAIT_FOR_KEY
---        wait for 10_000_000ns;
-
-        -- Wpisujemy DOBRĄ literę #1 ('v')
-        tb_ASCII_In   <= "1110110"; -- 'v' (0x76)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        wait for 200 ns; 
-
-        --  Wpisujemy DOBRĄ literę #2 ('i')
-        tb_ASCII_In   <= "1101001"; -- 'i' (0x69)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        wait for 200 ns; 
-        
-        --  Wpisujemy DOBRĄ literę #3 ('v')
-        tb_ASCII_In   <= "1110110"; -- 'v' (0x76)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        wait for 200 ns; 
-
-        --  Wpisujemy DOBRĄ literę #4 ('a')
-        tb_ASCII_In   <= "1100001"; -- 'a' (0x61)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        wait for 200 ns; 
-        
-        --  Wpisujemy DOBRĄ literę #5 ('d')
-        tb_ASCII_In   <= "1100100"; -- 'd' (0x64)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        wait for 200 ns; 
-        
-        --  Wpisujemy OSTATNIĄ DOBRĄ literę #6 ('o')
-        tb_ASCII_In   <= "1101111"; -- 'o' (0x6F)
-        tb_Char_Valid <= '1';
-        wait for clk_period;
-        tb_Char_Valid <= '0';
-        
-        -- Czekamy dłużej, aby zaobserwować, jak maszyna przetwarza koniec słowa
-        wait for 800 ns; 
-
-        wait; -- Koniec symulacji
+        report "Symulacja zakonczona sukcesem. Scenariusz wykonany.";
+        wait; -- Zatrzymaj proces na zawsze
     end process;
 
 end Behavioral;

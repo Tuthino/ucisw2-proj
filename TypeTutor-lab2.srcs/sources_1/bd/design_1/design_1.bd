@@ -145,21 +145,7 @@
         "ports": {
           "Clk": {
             "type": "clk",
-            "direction": "I",
-            "parameters": {
-              "FREQ_HZ": {
-                "value": "100000000",
-                "value_src": "ip_prop"
-              },
-              "PHASE": {
-                "value": "0.0",
-                "value_src": "ip_prop"
-              },
-              "CLK_DOMAIN": {
-                "value": "design_1_clk_wiz_0_0_clk_out1",
-                "value_src": "default_prop"
-              }
-            }
+            "direction": "I"
           },
           "Key_Code": {
             "direction": "I",
@@ -275,8 +261,8 @@
           "clk_wiz_0/clk_out1",
           "PS2_Kbd_0/Clk_100MHz",
           "OLED_ASCII_0/Clk_100MHz",
-          "Scancode_to_ASCII_0/Clk",
-          "Game_Logic_FSM_0/Clk"
+          "Game_Logic_FSM_0/Clk",
+          "Scancode_to_ASCII_0/Clk"
         ]
       }
     }

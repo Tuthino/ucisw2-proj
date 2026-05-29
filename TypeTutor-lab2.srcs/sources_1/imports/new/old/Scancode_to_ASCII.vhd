@@ -54,7 +54,7 @@ begin
                     shift_active <= not F0;
                     -- Char_Valid pozostaje '0', więc gra zignoruje samego Shifta
 
-                --  Obsługa pozostałych klawiszy (tylko na wciśnięcie, omijamy puszczanie)
+                -- 2. Obsługa pozostałych klawiszy (tylko na wciśnięcie, omijamy puszczanie)
                 elsif F0 = '0' then
                     
                     Char_Valid <= '1';
@@ -91,9 +91,6 @@ begin
                         -- Znaki specjalne
                         when x"29" => 
                             temp_ascii := "0100000"; -- Spacja (0x20)
-                            is_letter := '0';        -- Zdejmujemy flagę, spacja nie ma dużej wersji
-                        when x"02" => 
-                            temp_ascii := "00011011"; -- Spacja (0x20)
                             is_letter := '0';        -- Zdejmujemy flagę, spacja nie ma dużej wersji
                         
                         when others => 
